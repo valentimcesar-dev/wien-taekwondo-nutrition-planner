@@ -12,6 +12,8 @@
  * outside of this app's control (all user data is sent in POST bodies, never in URLs).
  */
 
+const fs = require('fs');
+const crypto = require('crypto');
 const path = require('path');
 const express = require('express');
 const { run, runProgress } = require('./lib/engine');
@@ -62,7 +64,19 @@ app.post('/api/pdf', (req, res) => {
   generatePdf(result, res, todayIso);
 });
 
-app.use(express.static(path.join(__dirname, 'public'), { etag: false, lastModified: false }));
+// The hosting layer serves static files with a long max-age, which keeps old app.js / style.css in
+// browsers after an update. So index.html links them with a content hash (?v=...) that changes
+// whenever the files change. Computed once at start-up; nothing is written.
+const PUBLIC_DIR = path.join(__dirname, 'public');
+function fileHash(name) {
+  return crypto.createHash('sha1').update(fs.readFileSync(path.join(PUBLIC_DIR, name))).digest('hex').slice(0, 10);
+}
+const INDEX_HTML = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8')
+  .replace('href="style.css"', `href="style.css?v=${fileHash('style.css')}"`)
+  .replace('src="app.js"', `src="app.js?v=${fileHash('app.js')}"`);
+app.get(['/', '/index.html'], (req, res) => res.type('html').send(INDEX_HTML));
+
+app.use(express.static(PUBLIC_DIR, { etag: false, lastModified: false }));
 
 // Generic error handler: never echoes request content
 // eslint-disable-next-line no-unused-vars

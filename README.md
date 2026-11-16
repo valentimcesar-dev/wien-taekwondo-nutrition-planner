@@ -43,15 +43,16 @@ Taekwondo (high-intensity class), cardio and strength (medium class), other such
 - **Progress check:** `POST /api/progress`. Stateless: the athlete re-enters starting weight and start date.
   The PDF also lists weekly checkpoints (planned weight and a "not below" limit).
 - All pages of the PDF are A4 (portrait; the weekly plan is A4 landscape).
-- All values live in `TRAINING` and `PROGRESS` in `lib/config.js`. The countdown and warning texts need the same review as the rest.
+- All values live in `TRAINING` and `PROGRESS` in `lib/config.js`. The countdown and warning texts were not separately reviewed by the dietitian as far as we know.
 
 ## BEFORE GOING LIVE (required)
 
-1. **Safety limits are placeholders.** `lib/config.js` holds the maximum weekly and total weight
-   loss (adult 1.0 % per week / 5 % total, teen 0.5 % per week / 3 % total). They were chosen to
-   be conservative but are NOT validated. Have a sports dietitian or physician confirm or change them.
-1b. **Training numbers are placeholders too.** MET bands, the 50 % / 25 % shares, the caps and the load tiers in
-   `TRAINING` (`lib/config.js`) are rough estimates and need the same review. Teens in particular.
+1. **Safety limits.** `lib/config.js` holds the maximum weekly and total weight
+   loss (adult 1.0 % per week / 5 % total, teen 0.5 % per week / 3 % total). The club's dietitian
+   confirmed the rules as OK (16 Nov 2026). Any later change to these numbers should be reviewed again.
+1b. **Training numbers.** MET bands, the 50 % / 25 % shares, the caps and the load tiers in
+   `TRAINING` (`lib/config.js`) are estimates. The dietitian confirmed the rules as OK and agreed to a teen cap of
+   +0.25 % per week (16 Nov 2026). Review again after any change.
 2. **Meal templates are unreviewed.** `lib/foods.js` has 40 dishes and 55 ingredients.
    A dietitian should review portions, combinations and the allergen data.
 3. **Allergen data is generic per ingredient.** Packaged products can differ; cross-contamination is
@@ -60,6 +61,12 @@ Taekwondo (high-intensity class), cardio and strength (medium class), other such
    Nothing is stored by this app, but the hosting provider may keep its own server logs.
    Check with a lawyer / data protection contact and add a privacy notice.
 5. The "seasonal tips" in the PDF are general statements for Central Europe, not stock lists.
+
+## Caching note (GoDaddy)
+
+GoDaddy serves `app.js` and `style.css` with `Cache-Control: max-age=2678400` (31 days), overriding the app's
+`no-store`. `server.js` therefore serves `index.html` with content-hashed URLs (`app.js?v=<hash>`), so browsers
+load new files after every update. Do not link `app.js` / `style.css` by a fixed URL.
 
 ## Files
 
