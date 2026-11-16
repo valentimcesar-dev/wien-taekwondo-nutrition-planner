@@ -45,6 +45,12 @@
           <label><span id="t-l-target"></span>
             <input type="number" id="targetKg" inputmode="decimal" step="0.1" min="30" max="200" required>
           </label>
+          <label><span id="t-l-weighin"></span>
+            <select id="weighIn">
+              <option value="dayBefore" id="opt-wi-before"></option>
+              <option value="sameDay" id="opt-wi-same"></option>
+            </select>
+          </label>
         </div>
       </section>
 
@@ -78,6 +84,21 @@
     </form>
 
     <div id="result" aria-live="polite"></div>
+
+    <section class="card" id="progress-card">
+      <h2 id="t-h-progress"></h2>
+      <p class="hint" id="t-hint-progress"></p>
+      <div class="grid">
+        <label><span id="t-l-startkg"></span>
+          <input type="number" id="startKg" inputmode="decimal" step="0.1" min="30" max="200">
+        </label>
+        <label><span id="t-l-startdate"></span>
+          <input type="date" id="startDate">
+        </label>
+      </div>
+      <button type="button" class="primary" id="t-progress-btn"></button>
+      <div id="progress-result" aria-live="polite"></div>
+    </section>
   </main>
 
   <footer class="wrap foot" id="t-foot"></footer>

@@ -21,6 +21,12 @@
       rateLabel: 'Maximaler Gewichtsverlust pro Woche',
       rateText: function (w, t) { var f = function (n) { return String(n).replace('.', ','); }; return t.extraWeeklyPct > 0 ? 'bis ca. ' + f(w.maxKg) + ' kg (ohne dein Training: ' + f(w.baseKg) + ' kg)' : 'bis ca. ' + f(w.maxKg) + ' kg'; },
       errTraining: 'Bitte prüfe die Trainingsstunden (maximal 40 Stunden pro Woche gesamt).',
+      weighIn: 'Wiegen', wiBefore: 'Am Vortag des Wettkampfs', wiSame: 'Am Wettkampftag',
+      trainingDays: 'Trainingstage / Woche', dUnit: ' Tage',
+      hProgress: 'Fortschritts-Check', hintProgress: 'Nach etwa einer Woche: Gib dein Startgewicht und das Startdatum ein und trage oben dein heutiges Gewicht, Zielgewicht, Wettkampfdatum und Training ein. Es wird nichts gespeichert.',
+      startKg: 'Startgewicht (kg)', startDate: 'Startdatum des Plans', progressBtn: 'Fortschritt prüfen',
+      progLost: 'Bisher verloren', progRate: 'Tempo pro Woche', progMax: 'Sicheres Maximum pro Woche', progPlanned: 'Laut Plan bisher',
+      errProgress: 'Bitte Startgewicht und Startdatum eingeben (heute oder früher).',
       hFood: 'Ernährung',
       diet: 'Ernährungsform',
       diets: { omnivore: 'Alles', pescatarian: 'Pescetarisch (Fisch, kein Fleisch)', vegetarian: 'Vegetarisch', vegan: 'Vegan', halal: 'Ohne Schweinefleisch (halal-orientiert)' },
@@ -59,6 +65,12 @@
       rateLabel: 'Maximum weight loss per week',
       rateText: function (w, t) { return t.extraWeeklyPct > 0 ? 'up to approx. ' + w.maxKg + ' kg (without your training: ' + w.baseKg + ' kg)' : 'up to approx. ' + w.maxKg + ' kg'; },
       errTraining: 'Please check your training hours (maximum 40 hours per week in total).',
+      weighIn: 'Weigh-in', wiBefore: 'Day before the competition', wiSame: 'On competition day',
+      trainingDays: 'Training days / week', dUnit: ' days',
+      hProgress: 'Progress check', hintProgress: 'After about a week: enter your starting weight and the start date, and fill in today\'s weight, target weight, competition date and training above. Nothing is stored.',
+      startKg: 'Starting weight (kg)', startDate: 'Start date of the plan', progressBtn: 'Check progress',
+      progLost: 'Lost so far', progRate: 'Pace per week', progMax: 'Safe maximum per week', progPlanned: 'Planned so far',
+      errProgress: 'Please enter a starting weight and a start date (today or earlier).',
       hFood: 'Nutrition',
       diet: 'Diet',
       diets: { omnivore: 'Everything', pescatarian: 'Pescatarian (fish, no meat)', vegetarian: 'Vegetarian', vegan: 'Vegan', halal: 'No pork (halal-oriented)' },
@@ -100,6 +112,7 @@
   var CATS = [['taekwondo', 'high'], ['cardio', 'mid'], ['strength', 'mid'], ['other', 'low']];
   var trainingState = {};
   CATS.forEach(function (c) { trainingState[c[0]] = { hours: 0, rpe: 5 }; });
+  var trainingDays = 4;
 
   var lang = (navigator.language || '').toLowerCase().indexOf('de') === 0 ? 'de' : 'en';
   var $ = function (id) { return document.getElementById(id); };
@@ -120,6 +133,10 @@
     setText('t-submit', s.submit); setText('t-foot', s.foot);
     setText('t-h-training', s.hTraining); setText('t-hint-training', s.hintTraining);
     buildTraining();
+    setText('t-l-weighin', s.weighIn); setText('opt-wi-before', s.wiBefore); setText('opt-wi-same', s.wiSame);
+    setText('t-h-progress', s.hProgress); setText('t-hint-progress', s.hintProgress);
+    setText('t-l-startkg', s.startKg); setText('t-l-startdate', s.startDate); setText('t-progress-btn', s.progressBtn);
+    $('progress-result').textContent = '';
 
     var diet = $('diet'); var keep = diet.value || 'omnivore';
     diet.textContent = '';
@@ -171,6 +188,14 @@
       row.appendChild(h.wrap); row.appendChild(e.wrap); box.appendChild(row);
       e.wrap.classList.toggle('off', Number(st.hours) === 0);
     });
+    var dr = document.createElement('div'); dr.className = 'trow';
+    var dw = document.createElement('div'); dw.className = 'slider';
+    var dl2 = document.createElement('span'); dl2.className = 'lbl'; dl2.textContent = s.trainingDays;
+    var di = document.createElement('input'); di.type = 'range'; di.min = 1; di.max = 7; di.step = 1; di.value = trainingDays; di.id = 'trainingDays';
+    di.setAttribute('aria-label', s.trainingDays);
+    var dout = document.createElement('output'); dout.textContent = trainingDays + s.dUnit;
+    di.addEventListener('input', function () { trainingDays = parseInt(di.value, 10); dout.textContent = trainingDays + s.dUnit; });
+    dw.appendChild(dl2); dw.appendChild(di); dw.appendChild(dout); dr.appendChild(dw); box.appendChild(dr);
     updateTotal();
   }
 
@@ -203,6 +228,8 @@
       otherAllergy: $('otherAllergy').value,
       dislikes: $('dislikes').value,
       training: JSON.parse(JSON.stringify(trainingState)),
+      trainingDays: trainingDays,
+      weighIn: $('weighIn').value,
     };
   }
 
@@ -227,6 +254,7 @@
     tl.appendChild(tb); tl.appendChild(document.createTextNode(s.tiers[a.training.tier]));
     n.appendChild(tl);
     out.appendChild(n);
+    (r.warnings || []).forEach(function (w) { out.appendChild(notice('warn', w.text)); });
 
     var pv = document.createElement('div'); pv.className = 'preview';
     var h = document.createElement('h3'); h.textContent = s.previewTitle; pv.appendChild(h);
@@ -284,10 +312,31 @@
       .then(function () { btn.disabled = false; btn.textContent = s.submit; });
   });
 
+  $('t-progress-btn').addEventListener('click', function () {
+    var s = STR[lang]; var out = $('progress-result'); out.textContent = '';
+    var body = collect();
+    body.startKg = parseFloat($('startKg').value.replace(',', '.'));
+    body.startDate = $('startDate').value;
+    if (!isFinite(body.startKg) || !body.startDate) { out.appendChild(notice('warn', s.errProgress)); return; }
+    post('/api/progress', body).then(function (r) { return r.json(); }).then(function (r) {
+      if (!r.ok) { out.appendChild(notice('warn', r.message)); return; }
+      var cls = (r.status === 'onTrack' || r.status === 'reached') ? 'ok' : (r.status === 'notReachable' || r.status === 'tooFast') ? 'bad' : 'warn';
+      var n = notice(cls, r.message);
+      var st = document.createElement('div'); st.className = 'stats';
+      var f = function (x) { return String(x).replace('.', lang === 'de' ? ',' : '.'); };
+      st.appendChild(stat(s.progLost, f(r.lostKg) + ' ' + s.kgUnit));
+      if (r.actualKgPerWeek !== undefined) st.appendChild(stat(s.progRate, f(r.actualKgPerWeek) + ' ' + s.kgUnit));
+      st.appendChild(stat(s.progMax, f(r.maxKgPerWeek) + ' ' + s.kgUnit));
+      if (r.plannedLostKg !== undefined) st.appendChild(stat(s.progPlanned, f(r.plannedLostKg) + ' ' + s.kgUnit));
+      n.appendChild(st); out.appendChild(n);
+    }).catch(function () { out.appendChild(notice('warn', s.errNet)); });
+  });
+
   $('lang-de').addEventListener('click', function () { lang = 'de'; applyLang(); });
   $('lang-en').addEventListener('click', function () { lang = 'en'; applyLang(); });
 
   var today = new Date().toISOString().slice(0, 10);
   $('date').min = today;
+  $('startDate').max = today;
   applyLang();
 })();

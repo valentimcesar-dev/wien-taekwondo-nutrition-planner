@@ -14,7 +14,7 @@
 
 const path = require('path');
 const express = require('express');
-const { run } = require('./lib/engine');
+const { run, runProgress } = require('./lib/engine');
 const { generatePdf } = require('./lib/pdf');
 const { TIMEZONE } = require('./lib/config');
 
@@ -44,6 +44,11 @@ app.post('/api/plan', (req, res) => {
   if (result.status === 'invalid') return res.status(400).json(result);
   // Blocked requests are a valid answer (HTTP 200) with ok:false
   res.json(result);
+});
+
+app.post('/api/progress', (req, res) => {
+  const result = runProgress(req.body);
+  res.status(result.status === 'invalid' ? 400 : 200).json(result);
 });
 
 app.post('/api/pdf', (req, res) => {

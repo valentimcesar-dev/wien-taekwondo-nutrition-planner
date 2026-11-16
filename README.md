@@ -32,7 +32,18 @@ Taekwondo (high-intensity class), cardio and strength (medium class), other such
 - **Plan:** from a "moderate" load upwards the plan gets an extra carbohydrate-focused snack for training days;
   "high" and above add guidance for an extra carbohydrate portion at lunch and dinner. The PDF lists the
   training input, load tier, weekly rate and warning signs of too little energy.
-- All values live in `TRAINING` in `lib/config.js`.
+- **Training days per week:** the extra snack appears only on training days (spread evenly over the 7 plan days);
+  rest days are marked in the weekly table.
+- **Competition week** (7 days or fewer left): training hours count at `TAPER_FACTOR` (0.6) because training is
+  assumed to taper; the PDF says so.
+- **Warning:** high or very high training load together with a planned loss close to the weekly limit shows a caution
+  on screen and in the PDF.
+- **Weigh-in countdown:** the PDF has a page for the last days before weigh-in and competition (dates depend on
+  "weigh-in day before / same day"): no new foods, no fasting, normal fluids.
+- **Progress check:** `POST /api/progress`. Stateless: the athlete re-enters starting weight and start date.
+  The PDF also lists weekly checkpoints (planned weight and a "not below" limit).
+- All pages of the PDF are A4 (portrait; the weekly plan is A4 landscape).
+- All values live in `TRAINING` and `PROGRESS` in `lib/config.js`. The countdown and warning texts need the same review as the rest.
 
 ## BEFORE GOING LIVE (required)
 
