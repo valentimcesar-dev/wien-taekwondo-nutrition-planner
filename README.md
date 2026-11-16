@@ -32,6 +32,11 @@ Taekwondo (high-intensity class), cardio and strength (medium class), other such
 - **Plan:** from a "moderate" load upwards the plan gets an extra carbohydrate-focused snack for training days;
   "high" and above add guidance for an extra carbohydrate portion at lunch and dinner. The PDF lists the
   training input, load tier, weekly rate and warning signs of too little energy.
+- **Menus until the competition:** the plan contains a menu for every day from today until the day before the
+  competition, grouped in weeks (one landscape A4 page per week in the PDF, a week selector in the web app). The dish
+  rotation continues across weeks, so weeks differ. Up to 400 days ahead are allowed, so the PDF can be long.
+- **Branding:** the Wien Taekwondo Centre logo (`public/wtc-logo.jpg`, `lib/wtc-logo-pdf.jpg`) and the domain
+  wientaekwondo.com appear in the web header/footer and on every PDF page.
 - **Training days per week:** the extra snack appears only on training days (spread evenly over the 7 plan days);
   rest days are marked in the weekly table.
 - **Competition week** (7 days or fewer left): training hours count at `TAPER_FACTOR` (0.6) because training is

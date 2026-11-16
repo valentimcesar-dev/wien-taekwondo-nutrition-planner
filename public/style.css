@@ -14,7 +14,24 @@
 body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: var(--dark); background: #fff; line-height: 1.5; }
 .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
 .top { background: var(--dark); color: #fff; border-bottom: 4px solid var(--accent); }
-.top-inner { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; padding-bottom: 14px; }
+.top-inner { display: flex; align-items: center; gap: 14px; padding-top: 12px; padding-bottom: 12px; }
+.brand { display: block; flex: none; line-height: 0; }
+.logo { width: 56px; height: 56px; border-radius: 50%; display: block; }
+.brand-text { flex: 1; min-width: 0; }
+.domain { font-size: 12px; color: #e5e7eb; text-decoration: none; }
+.domain:hover { text-decoration: underline; }
+.lang { flex: none; }
+.foot p { margin: 0 0 8px; }
+.foot-brand a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.foot-brand a:hover { text-decoration: underline; }
+.weekmenu { margin-top: 18px; }
+.weekmenu select { max-width: 100%; }
+.wkday { border-left: 4px solid var(--accent); padding: 4px 10px; margin: 10px 0; }
+.wkday .dh { font-weight: 700; }
+.wkday .dh small { font-weight: 500; color: var(--mid); margin-left: 6px; }
+.wkday ul { list-style: none; margin: 4px 0 0; padding: 0; font-size: 14px; }
+.wkday li { margin: 2px 0; }
+.wkday li span { color: var(--mid); font-size: 12px; }
 .club { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: #e5e7eb; }
 h1 { font-size: 22px; margin: 2px 0 0; }
 h2 { font-size: 16px; margin: 0 0 12px; }

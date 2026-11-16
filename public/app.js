@@ -39,6 +39,12 @@
       working: 'Bitte warten …',
       daysLeft: 'Tage bis Wettkampf', toGo: 'Differenz zum Ziel', kgUnit: 'kg',
       previewTitle: 'Vorschau: Beispieltag',
+      weekMenuTitle: 'Wochenmenüs bis zum Wettkampf',
+      weekMenuHint: 'Für jede Woche bis zum Wettkampf gibt es ein eigenes Menü. Wähle die Woche aus. Das vollständige Menü aller Wochen steht im PDF.',
+      weekLabel: function (k, n, a, b) { return 'Woche ' + k + ' von ' + n + ' (' + a + ' – ' + b + ')'; },
+      weekdays: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+      restSnack: 'Ruhetag – kein Extra-Snack',
+      trainDay: 'Training', restDay: 'Ruhetag',
       pdf: 'PDF herunterladen',
       contains: 'Enthält:',
       noOption: 'Für diese Mahlzeit gibt es mit deinen Angaben keine passende Vorlage. Bitte hole dir eine individuelle Beratung.',
@@ -83,6 +89,12 @@
       working: 'Please wait …',
       daysLeft: 'Days to competition', toGo: 'Difference to target', kgUnit: 'kg',
       previewTitle: 'Preview: example day',
+      weekMenuTitle: 'Weekly menus until the competition',
+      weekMenuHint: 'There is a separate menu for every week until the competition. Choose the week. The full menu for all weeks is in the PDF.',
+      weekLabel: function (k, n, a, b) { return 'Week ' + k + ' of ' + n + ' (' + a + ' – ' + b + ')'; },
+      weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      restSnack: 'Rest day – no extra snack',
+      trainDay: 'Training', restDay: 'Rest day',
       pdf: 'Download PDF',
       contains: 'Contains:',
       noOption: 'There is no suitable template for this meal with your selections. Please get individual advice.',
@@ -233,6 +245,48 @@
     };
   }
 
+  function fmtShort(iso) { var p = iso.split('-'); return lang === 'de' ? p[2] + '.' + p[1] + '.' : p[1] + '-' + p[2]; }
+  function fmtFull(iso) { var p = iso.split('-'); return lang === 'de' ? p[2] + '.' + p[1] + '.' + p[0] : iso; }
+  function dayOfWeek(iso) { var p = iso.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay(); }
+  function plusDays(iso, n) { var p = iso.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)).toISOString().slice(0, 10); }
+
+  function buildWeekMenu(plan) {
+    var s = STR[lang];
+    var box = document.createElement('div'); box.className = 'weekmenu';
+    var h = document.createElement('h3'); h.textContent = s.weekMenuTitle; box.appendChild(h);
+    var hint = document.createElement('p'); hint.className = 'hint'; hint.textContent = s.weekMenuHint; box.appendChild(hint);
+    var sel = document.createElement('select'); sel.setAttribute('aria-label', s.weekMenuTitle);
+    plan.weeks.forEach(function (w, i) {
+      var o = document.createElement('option'); o.value = String(i);
+      o.textContent = s.weekLabel(i + 1, plan.weeks.length, fmtFull(w.start), fmtFull(w.end)); sel.appendChild(o);
+    });
+    var list = document.createElement('div');
+    function show(i) {
+      list.textContent = '';
+      var w = plan.weeks[i];
+      w.days.forEach(function (d, di) {
+        var date = plusDays(w.start, di);
+        var row = document.createElement('div'); row.className = 'wkday';
+        var dh = document.createElement('div'); dh.className = 'dh';
+        dh.textContent = s.weekdays[dayOfWeek(date)] + ' ' + fmtShort(date);
+        if (w.trainingDays) { var sm = document.createElement('small'); sm.textContent = w.trainingDays[di] ? s.trainDay : s.restDay; dh.appendChild(sm); }
+        row.appendChild(dh);
+        var ul = document.createElement('ul');
+        plan.slots.forEach(function (slot) {
+          var dish = d[slot.key];
+          var li = document.createElement('li');
+          var lab = document.createElement('span'); lab.textContent = slot.label + ': '; li.appendChild(lab);
+          li.appendChild(document.createTextNode(dish ? dish.name : (slot.key === 'training' ? s.restSnack : '–')));
+          ul.appendChild(li);
+        });
+        row.appendChild(ul); list.appendChild(row);
+      });
+    }
+    sel.addEventListener('change', function () { show(Number(sel.value)); });
+    box.appendChild(sel); box.appendChild(list); show(0);
+    return box;
+  }
+
   function renderResult(r) {
     var s = STR[lang]; var out = $('result'); out.textContent = '';
     if (!r.ok) { out.appendChild(notice(r.status === 'blocked' ? 'bad' : 'warn', r.message)); return; }
@@ -272,6 +326,8 @@
       pv.appendChild(m);
     });
     out.appendChild(pv);
+
+    if (r.plan.weeks && r.plan.weeks.length) out.appendChild(buildWeekMenu(r.plan));
 
     var dl = document.createElement('div'); dl.className = 'dl';
     var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'primary'; btn.textContent = s.pdf;
