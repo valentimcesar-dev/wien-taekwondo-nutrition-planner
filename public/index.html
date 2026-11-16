@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Wien Taekwondo – Ernährungsplaner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <div>
+        <div class="club">Wien Taekwondo</div>
+        <h1 id="t-title"></h1>
+      </div>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" id="lang-de" class="active">DE</button>
+        <button type="button" id="lang-en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="intro" id="t-intro"></p>
+    <p class="privacy" id="t-privacy"></p>
+
+    <form id="form" novalidate>
+      <section class="card">
+        <h2 id="t-h-basics"></h2>
+        <div class="grid">
+          <label><span id="t-l-age"></span>
+            <select id="ageGroup" required>
+              <option value="" id="opt-age-empty"></option>
+              <option value="teen" id="opt-teen"></option>
+              <option value="adult" id="opt-adult"></option>
+            </select>
+          </label>
+          <label><span id="t-l-date"></span>
+            <input type="date" id="date" required>
+          </label>
+          <label><span id="t-l-current"></span>
+            <input type="number" id="currentKg" inputmode="decimal" step="0.1" min="30" max="200" required>
+          </label>
+          <label><span id="t-l-target"></span>
+            <input type="number" id="targetKg" inputmode="decimal" step="0.1" min="30" max="200" required>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 id="t-h-food"></h2>
+        <label><span id="t-l-diet"></span>
+          <select id="diet"></select>
+        </label>
+        <fieldset>
+          <legend id="t-l-allergens"></legend>
+          <div class="checks" id="allergens"></div>
+          <p class="hint" id="t-hint-allergens"></p>
+        </fieldset>
+        <label class="inline"><input type="checkbox" id="lactose"> <span id="t-l-lactose"></span></label>
+        <label><span id="t-l-other"></span>
+          <input type="text" id="otherAllergy" maxlength="100" autocomplete="off">
+        </label>
+        <label><span id="t-l-dislikes"></span>
+          <input type="text" id="dislikes" maxlength="200" autocomplete="off">
+        </label>
+      </section>
+
+      <button type="submit" class="primary" id="t-submit"></button>
+    </form>
+
+    <div id="result" aria-live="polite"></div>
+  </main>
+
+  <footer class="wrap foot" id="t-foot"></footer>
+  <script src="app.js"></script>
+</body>
+</html>
