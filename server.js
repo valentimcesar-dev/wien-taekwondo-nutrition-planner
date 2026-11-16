@@ -37,6 +37,24 @@ app.use((req, res, next) => {
   next();
 });
 
+// The mobile app (Capacitor WebView) loads its UI from the device and calls this API cross-origin.
+// Only its fixed origins are allowed, only for /api, no credentials. The browser version is same-origin.
+const APP_ORIGINS = new Set(['https://localhost', 'capacitor://localhost', 'http://localhost']);
+app.use('/api', (req, res, next) => {
+  const origin = req.get('Origin');
+  if (origin && APP_ORIGINS.has(origin)) {
+    res.set({
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '600',
+      Vary: 'Origin',
+    });
+    if (req.method === 'OPTIONS') return res.sendStatus(204);
+  }
+  next();
+});
+
 app.use(express.json({ limit: '10kb' }));
 
 app.get('/healthz', (req, res) => res.type('text/plain').send('ok'));

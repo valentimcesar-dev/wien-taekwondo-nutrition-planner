@@ -1,0 +1,8 @@
+{
+  "appId": "com.wientaekwondo.planner",
+  "appName": "Wien Taekwondo Planner",
+  "webDir": "../public",
+  "server": {
+    "androidScheme": "https"
+  }
+}

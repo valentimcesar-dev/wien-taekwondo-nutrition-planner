@@ -90,3 +90,11 @@ legend { font-size: 14px; font-weight: 600; padding: 0 6px; }
 .wkday .tag.water { background: var(--warn-bg); color: var(--warn); }
 .wkday .iron { font-size: 11px; font-weight: 700; color: var(--ok); background: var(--ok-bg); border-radius: 999px; padding: 0 6px; margin-left: 4px; }
 .meal .iron { font-size: 11px; font-weight: 700; color: var(--ok); background: var(--ok-bg); border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
+
+.secondary { background: #fff; color: var(--dark); border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; font: inherit; font-weight: 600; cursor: pointer; }
+.dl { display: flex; flex-direction: column; gap: 10px; }
+.hitem { background: #fff; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+.hitem .ht { font-weight: 700; font-size: 14px; }
+.hitem .hs { font-size: 12px; color: var(--mid); margin-bottom: 8px; }
+.hitem .hb { display: flex; gap: 8px; }
+.hitem .hb button { flex: 1; }

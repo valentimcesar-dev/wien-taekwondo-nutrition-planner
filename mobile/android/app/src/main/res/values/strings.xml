@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Wien Taekwondo Planner</string>
+    <string name="title_activity_main">Wien Taekwondo Planner</string>
+    <string name="package_name">com.wientaekwondo.planner</string>
+    <string name="custom_url_scheme">com.wientaekwondo.planner</string>
+</resources>

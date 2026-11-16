@@ -56,6 +56,13 @@
       noOption: 'Für diese Mahlzeit gibt es mit deinen Angaben keine passende Vorlage. Bitte hole dir eine individuelle Beratung.',
       errAge: 'Bitte Altersgruppe wählen.', errNum: 'Bitte gültige Gewichte eingeben (30–200 kg).', errDate: 'Bitte ein gültiges Datum wählen.',
       errNet: 'Verbindung fehlgeschlagen. Bitte versuche es erneut.',
+      privacyApp: 'Deine Eingaben werden nicht auf unserem Server gespeichert. Gespeicherte Pläne bleiben nur auf diesem Gerät.',
+      save: 'Plan auf diesem Gerät speichern', saved: 'Gespeichert auf diesem Gerät.',
+      hHistory: 'Gespeicherte Pläne',
+      hintHistory: 'Nur auf diesem Gerät gespeichert, nicht auf einem Server. Ein gespeicherter Plan enthält deine Eingaben (z. B. Gewicht, Allergien, ggf. Zyklus). Beim Öffnen wird der Plan neu berechnet (Internet nötig). Ohne Speichern bleibt nichts auf dem Gerät.',
+      noPlans: 'Noch keine gespeicherten Pläne.', open: 'Öffnen', del: 'Löschen', clearAll: 'Alle gespeicherten Pläne löschen',
+      confirmDel: 'Diesen gespeicherten Plan löschen?', confirmClear: 'Alle gespeicherten Pläne auf diesem Gerät löschen?',
+      savedOn: 'Gespeichert am', toTarget: 'Ziel',
       foot: 'Allgemeine Vorlage, keine medizinische oder individuelle Ernährungsberatung. Bei Erkrankungen, schweren Allergien oder Fragen zu deinem Gewicht frage bitte Ärztin/Arzt oder eine Diätologin/einen Diätologen. Allergenangaben gelten allgemein für die Zutat; lies bei Fertigprodukten immer die Zutatenliste.',
     },
     en: {
@@ -112,6 +119,13 @@
       noOption: 'There is no suitable template for this meal with your selections. Please get individual advice.',
       errAge: 'Please choose an age group.', errNum: 'Please enter valid weights (30–200 kg).', errDate: 'Please choose a valid date.',
       errNet: 'Connection failed. Please try again.',
+      privacyApp: 'Your input is not stored on our server. Saved plans stay on this device only.',
+      save: 'Save plan on this device', saved: 'Saved on this device.',
+      hHistory: 'Saved plans',
+      hintHistory: 'Stored only on this device, not on a server. A saved plan contains your input (e.g. weight, allergies, cycle if entered). Opening a plan recalculates it (internet needed). If you do not save, nothing stays on the device.',
+      noPlans: 'No saved plans yet.', open: 'Open', del: 'Delete', clearAll: 'Delete all saved plans',
+      confirmDel: 'Delete this saved plan?', confirmClear: 'Delete all saved plans on this device?',
+      savedOn: 'Saved on', toTarget: 'Target',
       foot: 'General template, not medical or individual nutrition advice. If you have a medical condition, severe allergies or questions about your weight, please ask a doctor or a registered dietitian. Allergen information is generic for the ingredient; always read the ingredient list on packaged products.',
     },
   };
@@ -138,6 +152,35 @@
   CATS.forEach(function (c) { trainingState[c[0]] = { hours: 0, rpe: 5 }; });
   var trainingDays = 4;
 
+  // ---- Native app (Capacitor) ----
+  var CAP = window.Capacitor;
+  var NATIVE = !!(CAP && typeof CAP.isNativePlatform === 'function' && CAP.isNativePlatform());
+  var API_BASE = NATIVE ? 'https://food.wientaekwondo.com' : '';
+  var PLUGINS = (CAP && CAP.Plugins) || {};
+  var HISTORY_KEY = 'wt-planner-history-v1';
+  var MAX_SAVED = 30;
+
+  function storeGet(key) {
+    if (PLUGINS.Preferences) return PLUGINS.Preferences.get({ key: key }).then(function (r) { return r.value; });
+    try { return Promise.resolve(window.localStorage.getItem(key)); } catch (e) { return Promise.resolve(null); }
+  }
+  function storeSet(key, value) {
+    if (PLUGINS.Preferences) return PLUGINS.Preferences.set({ key: key, value: value });
+    try { window.localStorage.setItem(key, value); } catch (e) { /* storage unavailable */ }
+    return Promise.resolve();
+  }
+  function storeRemove(key) {
+    if (PLUGINS.Preferences) return PLUGINS.Preferences.remove({ key: key });
+    try { window.localStorage.removeItem(key); } catch (e) { /* storage unavailable */ }
+    return Promise.resolve();
+  }
+  function loadHistory() {
+    return storeGet(HISTORY_KEY).then(function (v) {
+      try { var a = JSON.parse(v || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+    });
+  }
+  function saveHistory(list) { return storeSet(HISTORY_KEY, JSON.stringify(list)); }
+
   var lang = (navigator.language || '').toLowerCase().indexOf('de') === 0 ? 'de' : 'en';
   var $ = function (id) { return document.getElementById(id); };
   var lastBody = null;
@@ -148,7 +191,9 @@
     var s = STR[lang];
     document.documentElement.lang = lang;
     document.title = 'Wien Taekwondo – ' + s.title;
-    setText('t-title', s.title); setText('t-intro', s.intro); setText('t-privacy', s.privacy);
+    setText('t-title', s.title); setText('t-intro', s.intro); setText('t-privacy', NATIVE ? s.privacyApp : s.privacy);
+    setText('t-h-history', s.hHistory); setText('t-hint-history', s.hintHistory); setText('t-history-clear', s.clearAll);
+    if (NATIVE) renderHistory();
     setText('t-h-basics', s.hBasics); setText('t-l-age', s.age);
     setText('opt-age-empty', s.ageEmpty); setText('opt-teen', s.teen); setText('opt-adult', s.adult);
     setText('t-l-sex', s.sex); setText('opt-sex-none', s.sexNone); setText('opt-male', s.male); setText('opt-female', s.female);
@@ -353,11 +398,42 @@
     var dl = document.createElement('div'); dl.className = 'dl';
     var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'primary'; btn.textContent = s.pdf;
     btn.addEventListener('click', downloadPdf);
-    dl.appendChild(btn); out.appendChild(dl);
+    dl.appendChild(btn);
+    if (NATIVE) {
+      var sv = document.createElement('button'); sv.type = 'button'; sv.className = 'secondary'; sv.textContent = s.save;
+      sv.addEventListener('click', function () {
+        saveCurrentPlan(r).then(function () { sv.disabled = true; sv.textContent = s.saved; });
+      });
+      dl.appendChild(sv);
+    }
+    out.appendChild(dl);
   }
 
   function post(url, body) {
-    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store', credentials: 'omit' });
+    return fetch(API_BASE + url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store', credentials: 'omit' });
+  }
+
+  function blobToBase64(blob) {
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function () { resolve(String(fr.result).split(',')[1]); };
+      fr.onerror = reject;
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  // Native: write the PDF to the app's cache folder and open the system share sheet (save, send, print ...).
+  function shareNativePdf(blob) {
+    var name = lang === 'de' ? 'Ernaehrungsplan.pdf' : 'Nutrition-Plan.pdf';
+    return blobToBase64(blob).then(function (b64) {
+      return PLUGINS.Filesystem.writeFile({ path: name, data: b64, directory: 'CACHE' });
+    }).then(function (f) {
+      return PLUGINS.Share.share({ title: name, url: f.uri, dialogTitle: name });
+    }).catch(function (err) {
+      // The user closing the share sheet is not an error
+      if (err && /cancel/i.test(String(err.message || err))) return;
+      $('result').insertBefore(notice('warn', STR[lang].errNet), $('result').firstChild);
+    });
   }
 
   function downloadPdf() {
@@ -365,6 +441,7 @@
     post('/api/pdf', lastBody).then(function (res) {
       if (!res.ok) return res.json().then(function (j) { $('result').insertBefore(notice('warn', j.message || s.errNet), $('result').firstChild); });
       return res.blob().then(function (blob) {
+        if (NATIVE && PLUGINS.Filesystem && PLUGINS.Share) return shareNativePdf(blob);
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a'); a.href = url; a.download = lang === 'de' ? 'Ernaehrungsplan.pdf' : 'Nutrition-Plan.pdf';
         document.body.appendChild(a); a.click(); a.remove();
@@ -373,8 +450,80 @@
     }).catch(function () { $('result').insertBefore(notice('warn', s.errNet), $('result').firstChild); });
   }
 
-  $('form').addEventListener('submit', function (e) {
-    e.preventDefault();
+  function planTitle(b) {
+    var f = function (n) { return String(n).replace('.', lang === 'de' ? ',' : '.'); };
+    return fmtFull(b.date) + ' · ' + f(b.currentKg) + ' → ' + f(b.targetKg) + ' kg';
+  }
+
+  function saveCurrentPlan(r) {
+    if (!lastBody) return Promise.resolve();
+    var item = { id: String(Date.now()), savedAt: new Date().toISOString().slice(0, 10), body: JSON.parse(JSON.stringify(lastBody)) };
+    return loadHistory().then(function (list) {
+      list.unshift(item);
+      return saveHistory(list.slice(0, MAX_SAVED));
+    }).then(renderHistory);
+  }
+
+  // Put a saved input back into the form (training state lives in closures, so it is restored first)
+  function applyBody(b) {
+    lang = b.lang === 'en' ? 'en' : 'de';
+    CATS.forEach(function (c) {
+      var t = (b.training && b.training[c[0]]) || {};
+      trainingState[c[0]] = { hours: Number(t.hours) || 0, rpe: Number(t.rpe) || 5 };
+    });
+    trainingDays = Number(b.trainingDays) || 4;
+    $('sex').value = b.sex || '';
+    $('ageGroup').value = b.ageGroup || '';
+    $('diet').value = b.diet || 'omnivore';
+    applyLang();
+    $('diet').value = b.diet || 'omnivore';
+    Array.prototype.forEach.call($('allergens').querySelectorAll('input'), function (i) { i.checked = (b.allergens || []).indexOf(i.value) !== -1; });
+    $('date').value = b.date || '';
+    $('currentKg').value = b.currentKg || '';
+    $('targetKg').value = b.targetKg || '';
+    $('weighIn').value = b.weighIn || 'dayBefore';
+    $('lactose').checked = !!b.lactose;
+    $('otherAllergy').value = b.otherAllergy || '';
+    $('dislikes').value = b.dislikes || '';
+    $('lastPeriodStart').value = b.lastPeriodStart || '';
+    $('cycleLength').value = b.cycleLength || 28;
+    updateCycleVisibility();
+  }
+
+  function renderHistory() {
+    var card = $('history-card'); var list = $('history-list'); var s = STR[lang];
+    card.hidden = false;
+    loadHistory().then(function (items) {
+      list.textContent = '';
+      $('t-history-clear').hidden = !items.length;
+      if (!items.length) { var p = document.createElement('p'); p.className = 'hint'; p.textContent = s.noPlans; list.appendChild(p); return; }
+      items.forEach(function (it) {
+        var row = document.createElement('div'); row.className = 'hitem';
+        var ti = document.createElement('div'); ti.className = 'ht'; ti.textContent = planTitle(it.body); row.appendChild(ti);
+        var su = document.createElement('div'); su.className = 'hs'; su.textContent = s.savedOn + ' ' + fmtFull(it.savedAt); row.appendChild(su);
+        var bar = document.createElement('div'); bar.className = 'hb';
+        var ob = document.createElement('button'); ob.type = 'button'; ob.className = 'primary'; ob.textContent = s.open;
+        ob.addEventListener('click', function () { applyBody(it.body); submitPlan(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        var db = document.createElement('button'); db.type = 'button'; db.className = 'secondary'; db.textContent = s.del;
+        db.addEventListener('click', function () {
+          if (!window.confirm(s.confirmDel)) return;
+          loadHistory().then(function (all) { return saveHistory(all.filter(function (x) { return x.id !== it.id; })); }).then(renderHistory);
+        });
+        bar.appendChild(ob); bar.appendChild(db); row.appendChild(bar); list.appendChild(row);
+      });
+    });
+  }
+
+  if (NATIVE) {
+    $('t-history-clear').addEventListener('click', function () {
+      if (!window.confirm(STR[lang].confirmClear)) return;
+      storeRemove(HISTORY_KEY).then(renderHistory);
+    });
+  }
+
+  $('form').addEventListener('submit', function (e) { e.preventDefault(); submitPlan(); });
+
+  function submitPlan() {
     var s = STR[lang]; var out = $('result'); out.textContent = '';
     var body = collect();
     if (!body.ageGroup) { out.appendChild(notice('warn', s.errAge)); return; }
@@ -392,7 +541,7 @@
     post('/api/plan', body).then(function (r) { return r.json(); }).then(renderResult)
       .catch(function () { out.appendChild(notice('warn', s.errNet)); })
       .then(function () { btn.disabled = false; btn.textContent = s.submit; });
-  });
+  }
 
   $('t-progress-btn').addEventListener('click', function () {
     var s = STR[lang]; var out = $('progress-result'); out.textContent = '';

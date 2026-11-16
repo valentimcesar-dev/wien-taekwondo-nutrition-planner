@@ -1,0 +1,20 @@
+{
+  "name": "wien-taekwondo-planner-mobile",
+  "version": "1.0.0",
+  "description": "Capacitor wrapper (Android + iOS) for the Wien Taekwondo Nutrition Planner",
+  "private": true,
+  "scripts": {
+    "sync": "cap sync",
+    "android": "cap open android",
+    "ios": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/ios": "^8.6.2",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/share": "^8.0.3"
+  }
+}
