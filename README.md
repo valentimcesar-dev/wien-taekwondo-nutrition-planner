@@ -19,11 +19,28 @@ target weight and food restrictions, and gets a general weekly nutrition templat
   lactose intolerance, free-text allergies and dislikes.
 - Stateless: no database, no files written, no cookies, no request logging, `Cache-Control: no-store`.
 
+## Training load (new)
+
+The athlete reports hours per week and a perceived effort (1-10) for four categories:
+Taekwondo (high-intensity class), cardio and strength (medium class), other such as cycling or stretching (low class).
+`lib/engine.js` turns this into an internal estimate of net training energy
+(MET inside the class band, moved by the effort slider; `(MET-1) x kg x hours`). Nothing is shown in calories.
+
+- **Weekly loss limit:** a share of that training energy (adult 50 %, teen 25 %) is added to the base weekly limit,
+  capped (adult +0.5 %, teen +0.15 % of body weight per week). The total-loss ceiling is unchanged.
+  With no training entered, behaviour is identical to before.
+- **Plan:** from a "moderate" load upwards the plan gets an extra carbohydrate-focused snack for training days;
+  "high" and above add guidance for an extra carbohydrate portion at lunch and dinner. The PDF lists the
+  training input, load tier, weekly rate and warning signs of too little energy.
+- All values live in `TRAINING` in `lib/config.js`.
+
 ## BEFORE GOING LIVE (required)
 
 1. **Safety limits are placeholders.** `lib/config.js` holds the maximum weekly and total weight
    loss (adult 1.0 % per week / 5 % total, teen 0.5 % per week / 3 % total). They were chosen to
    be conservative but are NOT validated. Have a sports dietitian or physician confirm or change them.
+1b. **Training numbers are placeholders too.** MET bands, the 50 % / 25 % shares, the caps and the load tiers in
+   `TRAINING` (`lib/config.js`) are rough estimates and need the same review. Teens in particular.
 2. **Meal templates are unreviewed.** `lib/foods.js` has 40 dishes and 55 ingredients.
    A dietitian should review portions, combinations and the allergen data.
 3. **Allergen data is generic per ingredient.** Packaged products can differ; cross-contamination is

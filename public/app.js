@@ -9,6 +9,18 @@
       hBasics: 'Deine Angaben',
       age: 'Altersgruppe', ageEmpty: 'Bitte wählen', teen: 'Jugendlich (unter 18)', adult: 'Erwachsen (ab 18)',
       date: 'Wettkampfdatum', current: 'Gewicht heute (kg)', target: 'Zielgewicht / Gewichtsklasse (kg)',
+      hTraining: 'Dein Training',
+      hintTraining: 'Wie viele Stunden pro Woche trainierst du, und wie anstrengend ist es im Schnitt? Mehr Training verbraucht mehr Energie – dein Plan wird daran angepasst.',
+      cats: { taekwondo: 'Taekwondo', cardio: 'Ausdauer / Cardio', strength: 'Krafttraining', other: 'Sonstiges (z. B. Radfahren, Dehnen)' },
+      classes: { high: 'Hohe Intensität', mid: 'Mittlere Intensität', low: 'Niedrige Intensität' },
+      hours: 'Stunden / Woche', effort: 'Anstrengung', hUnit: ' h',
+      efforts: ['', 'sehr leicht', 'sehr leicht', 'leicht', 'leicht', 'mittel', 'mittel', 'hart', 'hart', 'sehr hart', 'maximal'],
+      trainingTotal: function (h) { return 'Training gesamt: ' + h + ' Stunden pro Woche'; },
+      tiers: { none: 'kein Training angegeben', light: 'leicht', moderate: 'mittel', high: 'hoch', veryHigh: 'sehr hoch' },
+      tierLabel: 'Trainingsbelastung',
+      rateLabel: 'Maximaler Gewichtsverlust pro Woche',
+      rateText: function (w, t) { var f = function (n) { return String(n).replace('.', ','); }; return t.extraWeeklyPct > 0 ? 'bis ca. ' + f(w.maxKg) + ' kg (ohne dein Training: ' + f(w.baseKg) + ' kg)' : 'bis ca. ' + f(w.maxKg) + ' kg'; },
+      errTraining: 'Bitte prüfe die Trainingsstunden (maximal 40 Stunden pro Woche gesamt).',
       hFood: 'Ernährung',
       diet: 'Ernährungsform',
       diets: { omnivore: 'Alles', pescatarian: 'Pescetarisch (Fisch, kein Fleisch)', vegetarian: 'Vegetarisch', vegan: 'Vegan', halal: 'Ohne Schweinefleisch (halal-orientiert)' },
@@ -35,6 +47,18 @@
       hBasics: 'Your details',
       age: 'Age group', ageEmpty: 'Please choose', teen: 'Teenager (under 18)', adult: 'Adult (18 and over)',
       date: 'Competition date', current: 'Weight today (kg)', target: 'Target weight / weight category (kg)',
+      hTraining: 'Your training',
+      hintTraining: 'How many hours per week do you train, and how hard is it on average? More training uses more energy – your plan is adjusted to it.',
+      cats: { taekwondo: 'Taekwondo', cardio: 'Endurance / cardio', strength: 'Strength training', other: 'Other (e.g. cycling, stretching)' },
+      classes: { high: 'High intensity', mid: 'Medium intensity', low: 'Low intensity' },
+      hours: 'Hours / week', effort: 'Effort', hUnit: ' h',
+      efforts: ['', 'very easy', 'very easy', 'easy', 'easy', 'moderate', 'moderate', 'hard', 'hard', 'very hard', 'maximal'],
+      trainingTotal: function (h) { return 'Total training: ' + h + ' hours per week'; },
+      tiers: { none: 'no training entered', light: 'light', moderate: 'moderate', high: 'high', veryHigh: 'very high' },
+      tierLabel: 'Training load',
+      rateLabel: 'Maximum weight loss per week',
+      rateText: function (w, t) { return t.extraWeeklyPct > 0 ? 'up to approx. ' + w.maxKg + ' kg (without your training: ' + w.baseKg + ' kg)' : 'up to approx. ' + w.maxKg + ' kg'; },
+      errTraining: 'Please check your training hours (maximum 40 hours per week in total).',
       hFood: 'Nutrition',
       diet: 'Diet',
       diets: { omnivore: 'Everything', pescatarian: 'Pescatarian (fish, no meat)', vegetarian: 'Vegetarian', vegan: 'Vegan', halal: 'No pork (halal-oriented)' },
@@ -73,6 +97,10 @@
     ['molluscs', 'Weichtiere', 'Molluscs'],
   ];
 
+  var CATS = [['taekwondo', 'high'], ['cardio', 'mid'], ['strength', 'mid'], ['other', 'low']];
+  var trainingState = {};
+  CATS.forEach(function (c) { trainingState[c[0]] = { hours: 0, rpe: 5 }; });
+
   var lang = (navigator.language || '').toLowerCase().indexOf('de') === 0 ? 'de' : 'en';
   var $ = function (id) { return document.getElementById(id); };
   var lastBody = null;
@@ -90,6 +118,8 @@
     setText('t-h-food', s.hFood); setText('t-l-diet', s.diet); setText('t-l-allergens', s.allergens); setText('t-hint-allergens', s.hintAllergens);
     setText('t-l-lactose', s.lactose); setText('t-l-other', s.other); setText('t-l-dislikes', s.dislikes);
     setText('t-submit', s.submit); setText('t-foot', s.foot);
+    setText('t-h-training', s.hTraining); setText('t-hint-training', s.hintTraining);
+    buildTraining();
 
     var diet = $('diet'); var keep = diet.value || 'omnivore';
     diet.textContent = '';
@@ -112,6 +142,41 @@
     $('lang-de').classList.toggle('active', lang === 'de');
     $('lang-en').classList.toggle('active', lang === 'en');
     $('result').textContent = '';
+  }
+
+  function buildTraining() {
+    var s = STR[lang]; var box = $('training'); box.textContent = '';
+    CATS.forEach(function (c) {
+      var key = c[0]; var st = trainingState[key];
+      var row = document.createElement('div'); row.className = 'trow';
+      var head = document.createElement('div'); head.className = 'trow-head';
+      var nm = document.createElement('span'); nm.className = 'trow-name'; nm.textContent = s.cats[key];
+      var bd = document.createElement('span'); bd.className = 'badge ' + c[1]; bd.textContent = s.classes[c[1]];
+      head.appendChild(nm); head.appendChild(bd); row.appendChild(head);
+
+      function slider(label, id, min, max, step, value, fmt) {
+        var w = document.createElement('div'); w.className = 'slider';
+        var l = document.createElement('span'); l.className = 'lbl'; l.textContent = label;
+        var inp = document.createElement('input'); inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = value; inp.id = id;
+        inp.setAttribute('aria-label', s.cats[key] + ' – ' + label);
+        var out = document.createElement('output'); out.textContent = fmt(value);
+        w.appendChild(l); w.appendChild(inp); w.appendChild(out);
+        return { wrap: w, input: inp, out: out };
+      }
+      var h = slider(s.hours, 'h-' + key, 0, 20, 0.5, st.hours, function (v) { return v + s.hUnit; });
+      var e = slider(s.effort, 'e-' + key, 1, 10, 1, st.rpe, function (v) { return v + ' – ' + s.efforts[v]; });
+      function sync() { e.wrap.classList.toggle('off', Number(st.hours) === 0); updateTotal(); }
+      h.input.addEventListener('input', function () { st.hours = parseFloat(h.input.value); h.out.textContent = st.hours + s.hUnit; sync(); });
+      e.input.addEventListener('input', function () { st.rpe = parseInt(e.input.value, 10); e.out.textContent = st.rpe + ' – ' + s.efforts[st.rpe]; });
+      row.appendChild(h.wrap); row.appendChild(e.wrap); box.appendChild(row);
+      e.wrap.classList.toggle('off', Number(st.hours) === 0);
+    });
+    updateTotal();
+  }
+
+  function updateTotal() {
+    var t = 0; CATS.forEach(function (c) { t += Number(trainingState[c[0]].hours); });
+    setText('t-training-total', STR[lang].trainingTotal(Math.round(t * 10) / 10));
   }
 
   function notice(cls, msg) {
@@ -137,6 +202,7 @@
       lactose: $('lactose').checked,
       otherAllergy: $('otherAllergy').value,
       dislikes: $('dislikes').value,
+      training: JSON.parse(JSON.stringify(trainingState)),
     };
   }
 
@@ -148,7 +214,19 @@
     var st = document.createElement('div'); st.className = 'stats';
     st.appendChild(stat(s.daysLeft, String(r.assessment.daysLeft)));
     st.appendChild(stat(s.toGo, (r.assessment.lossKg > 0 ? r.assessment.lossKg : 0) + ' ' + s.kgUnit));
-    n.appendChild(st); out.appendChild(n);
+    n.appendChild(st);
+    var a = r.assessment;
+    if (a.lossKg > 0) {
+      var rate = document.createElement('div'); rate.className = 'rate';
+      var rb = document.createElement('b'); rb.textContent = s.rateLabel + ': ';
+      rate.appendChild(rb); rate.appendChild(document.createTextNode(s.rateText(a.weekly, a.training)));
+      n.appendChild(rate);
+    }
+    var tl = document.createElement('div'); tl.className = 'rate';
+    var tb = document.createElement('b'); tb.textContent = s.tierLabel + ': ';
+    tl.appendChild(tb); tl.appendChild(document.createTextNode(s.tiers[a.training.tier]));
+    n.appendChild(tl);
+    out.appendChild(n);
 
     var pv = document.createElement('div'); pv.className = 'preview';
     var h = document.createElement('h3'); h.textContent = s.previewTitle; pv.appendChild(h);
@@ -197,6 +275,8 @@
     if (!body.ageGroup) { out.appendChild(notice('warn', s.errAge)); return; }
     if (!isFinite(body.currentKg) || !isFinite(body.targetKg) || body.currentKg < 30 || body.currentKg > 200 || body.targetKg < 30 || body.targetKg > 200) { out.appendChild(notice('warn', s.errNum)); return; }
     if (!body.date) { out.appendChild(notice('warn', s.errDate)); return; }
+    var totalH = 0; CATS.forEach(function (c) { totalH += Number(body.training[c[0]].hours); });
+    if (totalH > 40) { out.appendChild(notice('warn', s.errTraining)); return; }
     var btn = $('t-submit'); btn.disabled = true; btn.textContent = s.working;
     lastBody = body;
     post('/api/plan', body).then(function (r) { return r.json(); }).then(renderResult)
