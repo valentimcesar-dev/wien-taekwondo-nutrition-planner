@@ -27,7 +27,7 @@ Taekwondo (high-intensity class), cardio and strength (medium class), other such
 (MET inside the class band, moved by the effort slider; `(MET-1) x kg x hours`). Nothing is shown in calories.
 
 - **Weekly loss limit:** a share of that training energy (adult 50 %, teen 25 %) is added to the base weekly limit,
-  capped (adult +0.5 %, teen +0.15 % of body weight per week). The total-loss ceiling is unchanged.
+  capped (adult +0.5 %, teen +0.25 % of body weight per week). The total-loss ceiling is unchanged.
   With no training entered, behaviour is identical to before.
 - **Plan:** from a "moderate" load upwards the plan gets an extra carbohydrate-focused snack for training days;
   "high" and above add guidance for an extra carbohydrate portion at lunch and dinner. The PDF lists the
