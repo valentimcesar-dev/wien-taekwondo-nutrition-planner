@@ -50,6 +50,31 @@ Taekwondo (high-intensity class), cardio and strength (medium class), other such
 - All pages of the PDF are A4 (portrait; the weekly plan is A4 landscape).
 - All values live in `TRAINING` and `PROGRESS` in `lib/config.js`. The countdown and warning texts were not separately reviewed by the dietitian as far as we know.
 
+## Sex and menstrual cycle (new, PENDING DIETITIAN REVIEW)
+
+The form has an optional "sex" field (male / female / prefer not to say). For **female** a second optional card appears:
+first day of the last period and cycle length (21-40 days, default 28). Without those two values the female option only adds
+a general note on weight fluctuation to the PDF. **The safe weight-loss limits are identical for everyone. The cycle never changes them.**
+
+With cycle input (all numbers in `CYCLE` in `lib/config.js`, all placeholders):
+
+- **Weekly plan:** expected period days (cycle days 1-5) and days with possible water retention (first 2 days of the period
+  and the last 5 days before the next one) are marked on screen and in the PDF.
+- **Weigh-in warning:** if the weigh-in day or the competition day is predicted in a water-retention window, the plan shows a
+  note ("normal, no reason to eat or drink less, talk to your coach"). If both dates are too far away to predict
+  (more than 90 days from the entered period start) a "predict later" note is shown instead.
+- **Progress check:** when today's weight is probably raised by water retention and the starting weight was not, the "behind plan"
+  tolerance is widened by 1.0 kg and a note explains why. The "too fast" check is **not** relaxed. If the start weight was probably
+  raised instead, a note says part of the loss may be water.
+- **Iron:** on expected period days lunch and dinner use iron-rich dishes (tagged `iron: true` in `lib/foods.js`: lentils, chickpeas,
+  beans, lean beef, tofu, spinach) if the athlete's diet, allergies and dislikes allow it; otherwise the normal dish is used. The PDF
+  marks them "(Fe)" and recommends a vitamin C source and asking a doctor about heavy periods or suspected iron deficiency
+  (no supplements on their own).
+- Nothing is stored. Cycle data is health data and is processed only for the request (same as weight and allergies).
+
+To be reviewed by the dietitian before this goes live: the window definitions, the 1.0 kg tolerance, the list of iron-rich dishes,
+the PDF and screen wording (DE/EN), and whether a general female note without cycle input is enough.
+
 ## BEFORE GOING LIVE (required)
 
 1. **Safety limits.** `lib/config.js` holds the maximum weekly and total weight
@@ -76,7 +101,7 @@ load new files after every update. Do not link `app.js` / `style.css` by a fixed
 ## Files
 
     server.js          Express server: /api/plan, /api/pdf, static files, security headers
-    lib/config.js      Safety limits and settings
+    lib/config.js      Safety limits, training and cycle settings
     lib/foods.js       Ingredients (allergens, diet classes) and meal templates
     lib/engine.js      Validation, safety check, plan generation
     lib/pdf.js         PDF layout and German/English texts

@@ -83,3 +83,10 @@ legend { font-size: 14px; font-weight: 600; padding: 0 6px; }
 .slider.off { opacity: .45; }
 @media (max-width: 560px) { .slider { grid-template-columns: 1fr 1fr; } .slider input[type=range] { grid-column: 1 / -1; order: 3; } }
 .rate { margin-top: 10px; font-size: 14px; }
+
+[hidden] { display: none !important; }
+.wkday .tag { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
+.wkday .tag.period { background: var(--bad-bg); color: var(--bad); }
+.wkday .tag.water { background: var(--warn-bg); color: var(--warn); }
+.wkday .iron { font-size: 11px; font-weight: 700; color: var(--ok); background: var(--ok-bg); border-radius: 999px; padding: 0 6px; margin-left: 4px; }
+.meal .iron { font-size: 11px; font-weight: 700; color: var(--ok); background: var(--ok-bg); border-radius: 999px; padding: 1px 8px; margin-left: 6px; }

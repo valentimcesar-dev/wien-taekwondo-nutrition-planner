@@ -8,6 +8,12 @@
       privacy: 'Deine Eingaben werden nicht gespeichert.',
       hBasics: 'Deine Angaben',
       age: 'Altersgruppe', ageEmpty: 'Bitte wählen', teen: 'Jugendlich (unter 18)', adult: 'Erwachsen (ab 18)',
+      sex: 'Geschlecht', sexNone: 'Keine Angabe', male: 'Männlich', female: 'Weiblich',
+      hCycle: 'Zyklus (optional)',
+      hintCycle: 'Optional. Gib den ersten Tag deiner letzten Periode und die Zykluslänge ein. Der Plan markiert dann erwartete Periodentage und Tage mit möglicher Wassereinlagerung und nimmt an Periodentagen eisenreiche Gerichte auf. Der sichere Gewichtsverlust ändert sich dadurch nicht. Bei hormoneller Verhütung oder sehr unregelmäßigem Zyklus lass die Felder leer. Es wird nichts gespeichert.',
+      lastPeriod: 'Erster Tag der letzten Periode', cycleLen: 'Zykluslänge (Tage)',
+      tagPeriod: 'Periode erw.', tagWater: 'Wasser mögl.', ironTag: 'eisenreich',
+      errCycle: 'Bitte prüfe den Zyklus: Periodenbeginn heute oder bis zu 120 Tage zurück, Zykluslänge 21–40 Tage.',
       date: 'Wettkampfdatum', current: 'Gewicht heute (kg)', target: 'Zielgewicht / Gewichtsklasse (kg)',
       hTraining: 'Dein Training',
       hintTraining: 'Wie viele Stunden pro Woche trainierst du, und wie anstrengend ist es im Schnitt? Mehr Training verbraucht mehr Energie – dein Plan wird daran angepasst.',
@@ -58,6 +64,12 @@
       privacy: 'Your input is not stored.',
       hBasics: 'Your details',
       age: 'Age group', ageEmpty: 'Please choose', teen: 'Teenager (under 18)', adult: 'Adult (18 and over)',
+      sex: 'Sex', sexNone: 'Prefer not to say', male: 'Male', female: 'Female',
+      hCycle: 'Cycle (optional)',
+      hintCycle: 'Optional. Enter the first day of your last period and your cycle length. The plan then marks expected period days and days with possible water retention, and uses iron-rich dishes on period days. Your safe weight loss does not change because of this. With hormonal contraception or a very irregular cycle, leave the fields empty. Nothing is stored.',
+      lastPeriod: 'First day of last period', cycleLen: 'Cycle length (days)',
+      tagPeriod: 'Period exp.', tagWater: 'Water poss.', ironTag: 'iron-rich',
+      errCycle: 'Please check the cycle: period start today or up to 120 days ago, cycle length 21–40 days.',
       date: 'Competition date', current: 'Weight today (kg)', target: 'Target weight / weight category (kg)',
       hTraining: 'Your training',
       hintTraining: 'How many hours per week do you train, and how hard is it on average? More training uses more energy – your plan is adjusted to it.',
@@ -139,6 +151,8 @@
     setText('t-title', s.title); setText('t-intro', s.intro); setText('t-privacy', s.privacy);
     setText('t-h-basics', s.hBasics); setText('t-l-age', s.age);
     setText('opt-age-empty', s.ageEmpty); setText('opt-teen', s.teen); setText('opt-adult', s.adult);
+    setText('t-l-sex', s.sex); setText('opt-sex-none', s.sexNone); setText('opt-male', s.male); setText('opt-female', s.female);
+    setText('t-h-cycle', s.hCycle); setText('t-hint-cycle', s.hintCycle); setText('t-l-lastperiod', s.lastPeriod); setText('t-l-cyclelen', s.cycleLen);
     setText('t-l-date', s.date); setText('t-l-current', s.current); setText('t-l-target', s.target);
     setText('t-h-food', s.hFood); setText('t-l-diet', s.diet); setText('t-l-allergens', s.allergens); setText('t-hint-allergens', s.hintAllergens);
     setText('t-l-lactose', s.lactose); setText('t-l-other', s.other); setText('t-l-dislikes', s.dislikes);
@@ -242,6 +256,9 @@
       training: JSON.parse(JSON.stringify(trainingState)),
       trainingDays: trainingDays,
       weighIn: $('weighIn').value,
+      sex: $('sex').value,
+      lastPeriodStart: $('sex').value === 'female' ? $('lastPeriodStart').value : '',
+      cycleLength: $('sex').value === 'female' ? parseInt($('cycleLength').value, 10) : undefined,
     };
   }
 
@@ -270,6 +287,9 @@
         var dh = document.createElement('div'); dh.className = 'dh';
         dh.textContent = s.weekdays[dayOfWeek(date)] + ' ' + fmtShort(date);
         if (w.trainingDays) { var sm = document.createElement('small'); sm.textContent = w.trainingDays[di] ? s.trainDay : s.restDay; dh.appendChild(sm); }
+        var cd = w.cycleDays ? w.cycleDays[di] : null;
+        if (cd && cd.period) { var tp = document.createElement('span'); tp.className = 'tag period'; tp.textContent = s.tagPeriod; dh.appendChild(tp); }
+        if (cd && cd.water) { var tw = document.createElement('span'); tw.className = 'tag water'; tw.textContent = s.tagWater; dh.appendChild(tw); }
         row.appendChild(dh);
         var ul = document.createElement('ul');
         plan.slots.forEach(function (slot) {
@@ -277,6 +297,7 @@
           var li = document.createElement('li');
           var lab = document.createElement('span'); lab.textContent = slot.label + ': '; li.appendChild(lab);
           li.appendChild(document.createTextNode(dish ? dish.name : (slot.key === 'training' ? s.restSnack : '–')));
+          if (dish && dish.iron && cd && cd.period) { var ir = document.createElement('span'); ir.className = 'iron'; ir.textContent = s.ironTag; li.appendChild(ir); }
           ul.appendChild(li);
         });
         row.appendChild(ul); list.appendChild(row);
@@ -359,6 +380,11 @@
     if (!body.ageGroup) { out.appendChild(notice('warn', s.errAge)); return; }
     if (!isFinite(body.currentKg) || !isFinite(body.targetKg) || body.currentKg < 30 || body.currentKg > 200 || body.targetKg < 30 || body.targetKg > 200) { out.appendChild(notice('warn', s.errNum)); return; }
     if (!body.date) { out.appendChild(notice('warn', s.errDate)); return; }
+    if (body.sex === 'female' && body.lastPeriodStart) {
+      var ps = Date.parse(body.lastPeriodStart + 'T00:00:00Z'); var nowD = Date.parse(new Date().toISOString().slice(0, 10) + 'T00:00:00Z');
+      var back = Math.round((nowD - ps) / 86400000);
+      if (!isFinite(back) || back < 0 || back > 120 || !(body.cycleLength >= 21 && body.cycleLength <= 40)) { out.appendChild(notice('warn', s.errCycle)); return; }
+    }
     var totalH = 0; CATS.forEach(function (c) { totalH += Number(body.training[c[0]].hours); });
     if (totalH > 40) { out.appendChild(notice('warn', s.errTraining)); return; }
     var btn = $('t-submit'); btn.disabled = true; btn.textContent = s.working;
@@ -385,8 +411,13 @@
       st.appendChild(stat(s.progMax, f(r.maxKgPerWeek) + ' ' + s.kgUnit));
       if (r.plannedLostKg !== undefined) st.appendChild(stat(s.progPlanned, f(r.plannedLostKg) + ' ' + s.kgUnit));
       n.appendChild(st); out.appendChild(n);
+      if (r.cycleNote) out.appendChild(notice('warn', r.cycleNote));
     }).catch(function () { out.appendChild(notice('warn', s.errNet)); });
   });
+
+  function updateCycleVisibility() { $('cycle-card').hidden = $('sex').value !== 'female'; }
+  $('sex').addEventListener('change', updateCycleVisibility);
+  updateCycleVisibility();
 
   $('lang-de').addEventListener('click', function () { lang = 'de'; applyLang(); });
   $('lang-en').addEventListener('click', function () { lang = 'en'; applyLang(); });
@@ -394,5 +425,6 @@
   var today = new Date().toISOString().slice(0, 10);
   $('date').min = today;
   $('startDate').max = today;
+  $('lastPeriodStart').max = today;
   applyLang();
 })();

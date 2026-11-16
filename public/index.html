@@ -41,6 +41,13 @@
               <option value="adult" id="opt-adult"></option>
             </select>
           </label>
+          <label><span id="t-l-sex"></span>
+            <select id="sex">
+              <option value="" id="opt-sex-none"></option>
+              <option value="male" id="opt-male"></option>
+              <option value="female" id="opt-female"></option>
+            </select>
+          </label>
           <label><span id="t-l-date"></span>
             <input type="date" id="date" required>
           </label>
@@ -55,6 +62,19 @@
               <option value="dayBefore" id="opt-wi-before"></option>
               <option value="sameDay" id="opt-wi-same"></option>
             </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="card" id="cycle-card" hidden>
+        <h2 id="t-h-cycle"></h2>
+        <p class="hint" id="t-hint-cycle"></p>
+        <div class="grid">
+          <label><span id="t-l-lastperiod"></span>
+            <input type="date" id="lastPeriodStart">
+          </label>
+          <label><span id="t-l-cyclelen"></span>
+            <input type="number" id="cycleLength" inputmode="numeric" step="1" min="21" max="40" value="28">
           </label>
         </div>
       </section>
