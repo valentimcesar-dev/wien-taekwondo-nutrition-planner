@@ -98,3 +98,12 @@ legend { font-size: 14px; font-weight: 600; padding: 0 6px; }
 .hitem .hs { font-size: 12px; color: var(--mid); margin-bottom: 8px; }
 .hitem .hb { display: flex; gap: 8px; }
 .hitem .hb button { flex: 1; }
+
+/* Small phones: keep the long German title from running under the DE/EN switch */
+.brand-text h1 { overflow-wrap: anywhere; hyphens: auto; }
+@media (max-width: 420px) {
+  .top-inner { gap: 10px; }
+  .logo { width: 48px; height: 48px; }
+  .brand-text h1 { font-size: 1.1rem; }
+  .lang button { padding: 6px 9px; }
+}
